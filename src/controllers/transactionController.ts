@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma';
 
+
+
+// Historico de Transaçoes:
 export const createTransaction = async (req: Request, res: Response) => {
   const { servicoId, clienteId, prestadorId } = req.body;
 
@@ -49,9 +52,13 @@ export const createTransaction = async (req: Request, res: Response) => {
   }
 };
 
+
+
+
+// Manter um histórico de todas as transações realizadas na plataforma.
 export const getAllTransactions = async (req: Request, res: Response) => {
   try {
-    const transactions = await prisma.transaction.findMany();
+    const transactions = await prisma.transaction.findMany({});
     res.status(200).json(transactions);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar transações' });
@@ -62,7 +69,11 @@ export const getTransactionById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const transaction = await prisma.transaction.findUnique({ where: { id: Number(id) } });
+    const transaction = await prisma.transaction.findUnique(
+        { 
+        where: { id: Number(id) },
+    },
+    );
     if (!transaction) {
       return res.status(404).json({ error: 'Transação não encontrada' });
     }
