@@ -12,6 +12,14 @@ export const createTransaction = async (req: Request, res: Response) => {
     const cliente = await prisma.user.findUnique({ where: { id: clienteId } });
     const servico = await prisma.service.findUnique({ where: { id: servicoId } });
 
+    // prestador não pode contratar o seu proprio serviço
+    const verficarSeServicePertenceAoPrestador=await prisma.service.findUnique({where:{
+      id:servicoId,
+      prestador:{
+        id:clienteId
+      }
+    }})
+    if(verficarSeServicePertenceAoPrestador) return res.status(404).json({ error: 'Não possivel o prestador contratar o seu proprio serviço' });
     if (!cliente) {
       return res.status(404).json({ error: 'Cliente não encontrado' });
     }
@@ -26,6 +34,7 @@ export const createTransaction = async (req: Request, res: Response) => {
     }
 
     // Criar a transação
+  
     const transaction = await prisma.transaction.create({
       data: {
         servicoId,
@@ -47,6 +56,8 @@ export const createTransaction = async (req: Request, res: Response) => {
     });
 
     res.status(201).json(transaction);
+    
+   console.log(verficarSeServicePertenceAoPrestador)
   } catch (error) {
     res.status(400).json({ error: 'Erro ao criar transação' });
   }
@@ -58,7 +69,11 @@ export const createTransaction = async (req: Request, res: Response) => {
 // Manter um histórico de todas as transações realizadas na plataforma.
 export const getAllTransactions = async (req: Request, res: Response) => {
   try {
-    const transactions = await prisma.transaction.findMany({});
+    const transactions = await prisma.transaction.findMany({
+      include:{servico:true,
+        prestador:{select:{id:true,nome:true,email:true,saldo:true}},
+        cliente:{select:{id:true,nome:true,email:true,saldo:true}}}
+    });
     res.status(200).json(transactions);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar transações' });

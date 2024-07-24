@@ -2,6 +2,29 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
 
+
+
+
+
+
+
+
+
+
+export const register = async (req: Request, res: Response) => {
+  const { nome, nif, email, senha, tipoUsuario,saldo } = req.body;
+
+  const hashedSenha = await bcrypt.hash(senha, 10);
+
+  try {
+    const user = await prisma.user.create({
+      data: { nome, nif, email, senha: hashedSenha, tipoUsuario,saldo }
+    });
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(400).json({ error: 'Erro ao registrar usuário' });
+  }
+};
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
       const users = await prisma.user.findMany();
