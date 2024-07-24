@@ -12,6 +12,10 @@ const app=express()
 const PORT=process.env.PORT 
 
 app.use(helmet({}))
+app.use(helmet.hsts({ maxAge: 31536000 }));
+app.use(helmet.frameguard({ action: 'deny' }));
+app.use(helmet.xssFilter());
+
 app.use(cors({origin:"*"}))
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(limiter)
